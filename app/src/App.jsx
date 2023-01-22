@@ -1,34 +1,40 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import './App.css'
+import { useEffect, useState } from "react";
+import "./App.css";
+import { io } from "socket.io-client";
+import axios from "axios";
+const BASE_API = import.meta.env.VITE_BASE_API;
+const BASE_SOCKET = import.meta.env.VITE_BASE_SOCKET;
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [activeUser, setActiveUser] = useState(0);
+
+  useEffect(() => {
+    const socket = io(BASE_SOCKET);
+    socket.on("online_user", ({ type }) => {
+      if (type === "increase") setActiveUser((prev) => prev + 1);
+      else if (type === "decrease") setActiveUser((prev) => prev - 1);
+    });
+    return () => socket.disconnect();
+  }, []);
+
+  useEffect(() => {
+    return () => axios.post(BASE_API + "/close-connect").catch((err) => err);
+  }, []);
+
+  const sendFakeTraffic = () => {
+    axios
+      .get(BASE_API + "/start-fake-traffic", { params: { connections: 100 } })
+      .catch((err) => err);
+  };
 
   return (
-    <div className="App">
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src="/vite.svg" className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://reactjs.org" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+    <>
+      <div className="panel">
+        <button onClick={sendFakeTraffic}>Send Fake Traffic</button>
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </div>
-  )
+      <div className="active-user">{activeUser}</div>
+    </>
+  );
 }
 
-export default App
+export default App;
