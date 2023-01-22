@@ -25,6 +25,9 @@ a:hover {
 }
 
 body {
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #242424;
   margin: 0;
   width: 100vw;
   height: 100vh;
@@ -33,6 +36,12 @@ body {
   justify-content: center;
   align-items: center;
   overflow: hidden;
+}
+
+body * {
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #242424;
 }
 
 #root {
