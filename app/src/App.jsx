@@ -5,24 +5,11 @@ import axios from "axios";
 const BASE_API = import.meta.env.VITE_BASE_API;
 const BASE_SOCKET = import.meta.env.VITE_BASE_SOCKET;
 import { Line } from "@ant-design/plots";
-import { Skeleton, Empty } from "antd";
-
-const chartConfig = {
-  data: [],
-  autoFit: true,
-  xField: "x",
-  yField: "y",
-  legend: {
-    position: "top",
-  },
-  smooth: true,
-  animation: {
-    appear: {
-      animation: "path-in",
-      duration: 1000,
-    },
-  },
-};
+import { Empty } from "antd";
+const MAX_CONNECTION = 1000;
+const MAX_DURATION = 10;
+const MAX_PIPELINE = 1;
+let MAX_Y_SCALE = MAX_CONNECTION;
 
 function App() {
   const [activeUser, setActiveUser] = useState(0);
@@ -62,10 +49,45 @@ function App() {
 
   const sendFakeTraffic = () => {
     startTimer(true);
+    setChartData([]);
     axios
-      .get(BASE_API + "/start-fake-traffic", { params: { connections: 1000 } })
+      .get(BASE_API + "/start-fake-traffic", {
+        params: {
+          connections: MAX_CONNECTION,
+          duration: MAX_DURATION,
+          pipelining: MAX_PIPELINE,
+        },
+      })
       .then((res) => startTimer(false))
       .catch((err) => err);
+  };
+
+  let yScale = MAX_Y_SCALE;
+  if (activeUser > MAX_Y_SCALE) {
+    yScale = activeUser;
+    MAX_Y_SCALE = activeUser;
+  }
+
+  const chartConfig = {
+    data: [],
+    autoFit: true,
+    xField: "x",
+    yField: "y",
+    legend: {
+      position: "top",
+    },
+    smooth: true,
+    animation: {
+      appear: {
+        animation: "path-in",
+        duration: 100,
+      },
+    },
+    meta: {
+      y: {
+        max: yScale,
+      },
+    },
   };
 
   return (
@@ -78,13 +100,8 @@ function App() {
       <div className="active-user">{activeUser}</div>
       <div className="chart">
         {(() => {
-          if (chartData?.length && !timer) {
-            console.log("here", chartData, chartData?.length);
-            return (
-              <Line {...chartConfig} {...(!timer ? { data: chartData } : {})} />
-            );
-          } else if (timer) {
-            return <Skeleton />;
+          if (chartData?.length) {
+            return <Line {...chartConfig} data={chartData} />;
           } else {
             return <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />;
           }
