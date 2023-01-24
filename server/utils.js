@@ -12,8 +12,8 @@ const sendFakeTraffic = async ({
     connections,
     pipelining,
     duration,
+    method,
     renderStatusCodes: true,
-    method
   });
 
   autocannon.track(instance);

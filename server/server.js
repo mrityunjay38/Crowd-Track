@@ -23,8 +23,12 @@ app.use(express.static(path.join(__dirname, "../app/build")));
 /* End-Enable cors + set static frontend */
 
 app.get("/start-fake-traffic", async (req, res) => {
-  const { connections = 100 } = req.query;
-  const result = await sendFakeTraffic({ connections });
+  const { connections, duration, pipelining } = req.query;
+  const result = await sendFakeTraffic({
+    connections: Number(connections),
+    duration: Number(duration),
+    pipelining: Number(pipelining),
+  });
   if (result) {
     res.status(200);
     res.send();
@@ -32,11 +36,15 @@ app.get("/start-fake-traffic", async (req, res) => {
 });
 
 app.get("/fake-traffic", (req, res) => {
-  res.status(200);
-  res.send();
-  io.emit("online_user", { type: "increase" });
+  io.volatile.emit("online_user", { type: "increase" }, (ack) => {
+    res.status(200);
+    res.send();
+  });
   setTimeout(() => {
-    io.emit("online_user", { type: "decrease" });
+    io.volatile.emit("online_user", { type: "decrease" }, (ack) => {
+      res.status(200);
+      res.send();
+    });
   }, 200);
 });
 
