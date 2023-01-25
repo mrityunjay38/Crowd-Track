@@ -6,7 +6,7 @@ const BASE_API = import.meta.env.VITE_BASE_API;
 const BASE_SOCKET = import.meta.env.VITE_BASE_SOCKET;
 import { Line } from "@ant-design/plots";
 import { Empty } from "antd";
-const MAX_CONNECTION = 1000;
+const MAX_CONNECTION = 5000;
 const MAX_DURATION = 10;
 const MAX_PIPELINE = 1;
 let MAX_Y_SCALE = MAX_CONNECTION;
