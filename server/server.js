@@ -36,16 +36,12 @@ app.get("/start-fake-traffic", async (req, res) => {
 });
 
 app.get("/fake-traffic", (req, res) => {
-  io.volatile.emit("online_user", { type: "increase" }, (ack) => {
-    res.status(200);
-    res.send();
-  });
+  io.volatile.emit("online_user", { type: "increase" });
   setTimeout(() => {
-    io.volatile.emit("online_user", { type: "decrease" }, (ack) => {
-      res.status(200);
-      res.send();
-    });
+    io.volatile.emit("online_user", { type: "decrease" });
   }, 200);
+  res.status(200);
+  res.send();
 });
 
 app.post("/close-connect", (req, res) => {
