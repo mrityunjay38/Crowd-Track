@@ -42,6 +42,26 @@ const barChartConfig = {
 
 function App() {
   const [trafficCount, setTrafficCount] = useState(0);
+
+  useEffect(() => {
+    const socket = io(BASE_SOCKET);
+    userEmitter();
+    subscribeListner(socket);
+    return () => unsubscribeListner(socket);
+  }, []);
+
+  const userEmitter = (socket) => {
+    socket.emit("new_user");
+  };
+
+  const subscribeListner = (socket) => {
+    socket.on("online_user", ({ userCount }) => setTrafficCount(userCount));
+  };
+
+  const unsubscribeListner = (socket) => {
+    socket.disconnect();
+  };
+
   return (
     <Row className="container">
       <Col span={6} className="panel flex col justify align center">
