@@ -1,8 +1,33 @@
+.flex.row,
+.flex.col {
+  display: flex;
+}
+
+.flex.col {
+  flex-direction: column;
+}
+
+.justify.center {
+  justify-content: center;
+}
+
+.align.center {
+  align-items: center;
+}
+
+.container {
+  height: 100%;
+}
+
 .active-user {
   font-size: 10em;
   text-align: center;
 }
 
-.chart {
-  width: 100vw;
+.chart-plot #line {
+  flex: 1;
+}
+
+.chart-plot #bar {
+  flex: 1;
 }
