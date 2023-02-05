@@ -124,8 +124,8 @@ function App() {
     xField: "x",
     yField: "y",
     slider: {
-      start: 1,
-      end: 0,
+      start: 0,
+      end: 1,
     },
     meta: {
       x: {
