@@ -5,13 +5,13 @@ import axios from "axios";
 const BASE_API = import.meta.env.VITE_BASE_API;
 const SIMULATOR_API = import.meta.env.VITE_SIMULATOR_API;
 const BASE_SOCKET = import.meta.env.VITE_BASE_SOCKET;
-import { Line, Bar } from "@ant-design/plots";
-import { Empty, Row, Col } from "antd";
+import { Bar } from "@ant-design/plots";
+import { Row, Col } from "antd";
 const MAX_CONNECTION = 100;
 const MAX_DURATION = 60 * 1;
 const MAX_PIPELINE = 1;
-const TIME_FRAME = 5;
-let MAX_Y_SCALE = MAX_CONNECTION;
+const TIME_FRAME = 1;
+let MAX_SCALE = MAX_CONNECTION * MAX_DURATION;
 
 const baseConfig = {
   data: [],
@@ -28,42 +28,29 @@ const baseConfig = {
   },
 };
 
-const lineChartConfig = {
-  ...baseConfig,
-  xField: "x",
-  yField: "y",
-  slider: {
-    start: 0,
-    end: 1,
-  },
-};
-
-const barChartConfig = {
-  ...baseConfig,
-  xField: "y",
-  yField: "x",
-  scrollbar: {
-    type: "vertical",
-  },
-};
-
 function App() {
   const [trafficCount, setTrafficCount] = useState(0);
-  const [timer, setTimer] = useState(0);
-  const [chartData, setChartData] = useState({});
+  const [barTimer, setBarTimer] = useState(0);
+  const [barChartData, setBarChartData] = useState({});
 
   useEffect(() => {
     const socket = io(BASE_SOCKET);
     userEmitter(socket);
     subscribeListner(socket);
 
-    /* Pre-define line chart scale */
-    setChartData(defineAxisScale());
+    /* Pre-define bar chart scale */
+    setBarChartData(defineBarAxisScale());
 
     return () => unsubscribeListner(socket);
   }, []);
 
-  useEffect(() => {}, [timer]);
+  useEffect(() => {
+    if (barTimer) {
+      const updatedChartData = { ...barChartData };
+      updatedChartData[barTimer] = trafficCount;
+      setBarChartData(updatedChartData);
+    }
+  }, [barTimer]);
 
   const userEmitter = (socket) => {
     socket.emit("new_user");
@@ -77,17 +64,20 @@ function App() {
     socket.disconnect();
   };
 
-  const startTimer = () => {
+  const startBarTimer = () => {
     const hook = setInterval(() => {
-      setTimer((prev) => prev + 1);
-    }, 5000);
+      setBarTimer((prev) => prev + TIME_FRAME);
+    }, TIME_FRAME * 1000);
     return hook;
   };
 
-  const endTimer = (hook) => clearInterval(hook);
+  const endBarTimer = (hook) => {
+    clearInterval(hook);
+    setBarTimer(0);
+  };
 
-  const defineAxisScale = () => {
-    const points = new Array(MAX_DURATION / TIME_FRAME)
+  const defineBarAxisScale = () => {
+    const points = new Array(MAX_DURATION)
       .fill(TIME_FRAME)
       .reduce((acc, point, index) => {
         if (index !== 0) acc.push(acc[index - 1] + point);
@@ -102,7 +92,7 @@ function App() {
   };
 
   const simulateTraffic = () => {
-    const hook = startTimer();
+    const barHook = startBarTimer();
     axios
       .get(SIMULATOR_API + "/simulate-traffic", {
         params: {
@@ -113,26 +103,46 @@ function App() {
         },
       })
       .catch((err) => err)
-      .then(() => endTimer(hook));
+      .then(() => {
+        endBarTimer(barHook);
+      });
   };
 
-  const plotChartData = Object.entries(chartData).map(([key, val]) => ({
-    x: key,
-    y: val,
-  }));
+  const plotBarChart = Object.entries(barChartData)
+    .reverse()
+    .map(([key, val]) => ({
+      x: val,
+      y: key,
+    }));
+
+  if (trafficCount > MAX_SCALE) {
+    MAX_SCALE = trafficCount;
+  }
+
+  const barChartConfig = {
+    ...baseConfig,
+    xField: "x",
+    yField: "y",
+    slider: {
+      start: 1,
+      end: 0,
+    },
+    meta: {
+      x: {
+        max: MAX_SCALE,
+      },
+    },
+  };
 
   return (
     <Row className="container">
-      <Col span={6} className="panel flex col justify align center">
+      <Col span={8} className="panel flex col justify align center">
         <div className="active-user">{trafficCount}</div>
         <button onClick={simulateTraffic}>Simulate Traffic</button>
       </Col>
-      <Col span={18} className="chart-plot flex col justify center">
-        <div id="line">
-          <Line {...lineChartConfig} data={plotChartData} />
-        </div>
+      <Col span={16} className="chart-plot flex col justify center">
         <div id="bar">
-          <Bar {...barChartConfig} data={plotChartData} />
+          <Bar {...barChartConfig} data={plotBarChart} />
         </div>
       </Col>
     </Row>
