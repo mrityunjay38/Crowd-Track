@@ -6,9 +6,11 @@ const sendFakeTraffic = async ({
   duration = 10,
   pipelining = 1,
   method = "GET",
+  targetUrl,
 } = {}) => {
   const instance = autocannon({
-    url: `http://localhost:${PORT}/fake-traffic`,
+    workers: 4,
+    url: targetUrl,
     connections,
     pipelining,
     duration,
@@ -20,4 +22,8 @@ const sendFakeTraffic = async ({
   return instance;
 };
 
-module.exports = { sendFakeTraffic };
+const getRandomNumber = (rangeX, rangeY) => {
+  return Math.floor(Math.random() * rangeY + rangeX);
+};
+
+module.exports = { sendFakeTraffic, getRandomNumber };

@@ -4,7 +4,7 @@ const cors = require("cors");
 const http = require("http");
 const server = http.createServer(app);
 const PORT = process.env.PORT || 3001;
-const { sendFakeTraffic } = require("./utils.js");
+const { getRandomNumber } = require("./utils");
 const { Server } = require("socket.io");
 const io = new Server(server, {
   cors: {
@@ -23,36 +23,46 @@ app.use(express.json());
 app.use(cors());
 /* End-Enable cors*/
 
-app.get("/start-fake-traffic", async (req, res) => {
-  const { connections, duration, pipelining } = req.query;
-  const result = await sendFakeTraffic({
-    connections: Number(connections),
-    duration: Number(duration),
-    pipelining: Number(pipelining),
-  });
-  if (result) {
+app.get("/", (req, res) => {
+  io.emit("online_user", { userCount: userCount + 1 }, () => {
+    userCount += 1;
     res.status(200);
     res.send();
-  }
+
+    setTimeout(() => {
+      io.emit("online_user", { userCount: userCount - 1 }, () => {
+        userCount -= 1;
+      });
+    }, getRandomNumber(0, 10) * 1000);
+  });
 });
+
+const onUserConnect = (socket, arg) => {
+  socket.broadcast.emit("online_user", { userCount: userCount + 1 });
+  userCount += 1;
+};
+
+const onUserDisconnect = (socket, arg) => {
+  if (userCount) {
+    socket.broadcast.emit("online_user", { userCount: userCount - 1 });
+    userCount -= 1;
+  } else {
+    socket.broadcast.emit("online_user", { userCount: 0 });
+    userCount = 0;
+  }
+};
 
 io.on("connection", (socket) => {
   socket.on("new_user", (arg) => {
-    socket.broadcast.emit("online_user", { userCount: userCount + 1 });
-    userCount += 1;
+    onUserConnect(socket, arg);
   });
 
-  socket.on("disconnecting", () => {
-    if (userCount) {
-      socket.broadcast.emit("online_user", { userCount: userCount - 1 });
-      userCount -= 1;
-    } else {
-      socket.broadcast.emit("online_user", { userCount: 0 });
-      userCount = 0;
-    }
+  socket.on("disconnecting", (arg) => {
+    onUserDisconnect(socket, arg);
   });
 });
 
 server.listen(PORT, () => {
-  console.log("listening on *:3001");
+  console.clear();
+  console.log(`listening on *:${PORT}`, process.pid);
 });
