@@ -45,7 +45,7 @@ function App() {
 
   useEffect(() => {
     const socket = io(BASE_SOCKET);
-    userEmitter();
+    userEmitter(socket);
     subscribeListner(socket);
     return () => unsubscribeListner(socket);
   }, []);
