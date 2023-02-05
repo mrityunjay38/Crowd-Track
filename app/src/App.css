@@ -17,6 +17,7 @@
 
 .container {
   height: 100%;
+  padding: 2em;
 }
 
 .active-user {
@@ -24,10 +25,11 @@
   text-align: center;
 }
 
-.chart-plot #line {
+.chart-plot #bar {
+  height: 100%;
   flex: 1;
 }
 
-.chart-plot #bar {
-  flex: 1;
+#bar > div {
+  height: 100%;
 }
