@@ -1,7 +1,6 @@
 const express = require("express");
 const app = express();
 const cors = require("cors");
-const path = require("path");
 const http = require("http");
 const server = http.createServer(app);
 const PORT = process.env.PORT || 3001;
@@ -14,13 +13,15 @@ const io = new Server(server, {
   },
 });
 
+let userCount = 0;
+
 /* For parsing application/json */
 app.use(express.json());
+/* End-For parsing application/json */
 
-/* Start-Enable cors + set static frontend */
+/* Start-Enable cors */
 app.use(cors());
-app.use(express.static(path.join(__dirname, "../app/build")));
-/* End-Enable cors + set static frontend */
+/* End-Enable cors*/
 
 app.get("/start-fake-traffic", async (req, res) => {
   const { connections, duration, pipelining } = req.query;
@@ -35,19 +36,21 @@ app.get("/start-fake-traffic", async (req, res) => {
   }
 });
 
-app.get("/fake-traffic", (req, res) => {
-  io.volatile.emit("online_user", { type: "increase" });
-  setTimeout(() => {
-    io.volatile.emit("online_user", { type: "decrease" });
-  }, 200);
-  res.status(200);
-  res.send();
-});
+io.on("connection", (socket) => {
+  socket.on("new_user", (arg) => {
+    socket.broadcast.emit("online_user", { userCount: userCount + 1 });
+    userCount += 1;
+  });
 
-app.post("/close-connect", (req, res) => {
-  res.status(200);
-  res.send();
-  io.disconnectSockets();
+  socket.on("disconnecting", () => {
+    if (userCount) {
+      socket.broadcast.emit("online_user", { userCount: userCount - 1 });
+      userCount -= 1;
+    } else {
+      socket.broadcast.emit("online_user", { userCount: 0 });
+      userCount = 0;
+    }
+  });
 });
 
 server.listen(PORT, () => {
