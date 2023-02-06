@@ -20,16 +20,36 @@
   padding: 2em;
 }
 
+.label.caption {
+  font-size: 2em;
+}
+
+.label.text {
+  font-size: 1.2em;
+}
+
+.label.chart-title {
+  margin-bottom: 1em;
+  font-size: 1rem;
+}
+
 .active-user {
-  font-size: 10em;
+  font-size: 8em;
   text-align: center;
+  line-height: 1.2em;
+  background: -webkit-linear-gradient(120deg, #bd34fe 30%, #41d1ff);
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .chart-plot #bar {
   height: 100%;
-  flex: 1;
 }
 
-#bar > div {
+#bar>div {
   height: 100%;
+}
+
+.btn-simulate {
+  margin-top: 4em;
 }

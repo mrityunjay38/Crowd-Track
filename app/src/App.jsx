@@ -137,10 +137,15 @@ function App() {
   return (
     <Row className="container">
       <Col span={8} className="panel flex col justify align center">
+        <span className="label caption">Right Now</span>
         <div className="active-user">{trafficCount}</div>
-        <button onClick={simulateTraffic}>Simulate Traffic</button>
+        <span className="label text">simulated users on site</span>
+        <button className="btn-simulate" onClick={simulateTraffic}>
+          Simulate Traffic
+        </button>
       </Col>
       <Col span={16} className="chart-plot flex col justify center">
+        <span className="label chart-title">Pageviews / second</span>
         <div id="bar">
           <Bar {...barChartConfig} data={plotBarChart} />
         </div>
