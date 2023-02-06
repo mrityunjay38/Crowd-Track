@@ -4,8 +4,8 @@
   "description": "A simple app to track live active users.",
   "main": "server.js",
   "scripts": {
-    "start": "nodemon server.js",
-    "start:simulator": "nodemon simulate.js"
+    "server": "nodemon server.js",
+    "simulator": "nodemon simulate.js"
   },
   "repository": {
     "type": "git",
