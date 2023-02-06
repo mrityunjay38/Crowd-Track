@@ -1,5 +1,4 @@
 const autocannon = require("autocannon");
-const PORT = process.env.PORT || 3001;
 
 const sendFakeTraffic = async ({
   connections = 100,
@@ -9,16 +8,17 @@ const sendFakeTraffic = async ({
   targetUrl,
 } = {}) => {
   const instance = autocannon({
-    workers: 4,
     url: targetUrl,
     connections,
     pipelining,
     duration,
     method,
-    renderStatusCodes: true,
   });
 
-  autocannon.track(instance);
+  autocannon.track(instance, {
+    renderStatusCodes: true,
+    renderLatencyTable: true,
+  });
   return instance;
 };
 
