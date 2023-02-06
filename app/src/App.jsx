@@ -7,11 +7,11 @@ const SIMULATOR_API = import.meta.env.VITE_SIMULATOR_API;
 const BASE_SOCKET = import.meta.env.VITE_BASE_SOCKET;
 import { Bar } from "@ant-design/plots";
 import { Row, Col } from "antd";
-const MAX_CONNECTION = 100;
+const MAX_CONNECTION = 2000;
 const MAX_DURATION = 60 * 1;
-const MAX_PIPELINE = 1;
+const MAX_PIPELINE = 5;
 const TIME_FRAME = 1;
-let MAX_SCALE = MAX_CONNECTION * MAX_DURATION;
+let MAX_SCALE = MAX_CONNECTION * MAX_PIPELINE;
 
 const baseConfig = {
   data: [],
