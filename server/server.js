@@ -1,6 +1,3 @@
-const express = require("express");
-const app = express();
-const cors = require("cors");
 const http = require("http");
 const server = http.createServer(app);
 const PORT = process.env.PORT || 3001;
@@ -15,27 +12,25 @@ const io = new Server(server, {
 
 let userCount = 0;
 
-/* For parsing application/json */
-app.use(express.json());
-/* End-For parsing application/json */
+function app(req, res) {
+  const url = req.url;
+  const method = req.method;
 
-/* Start-Enable cors */
-app.use(cors());
-/* End-Enable cors*/
+  if (url === "/" && method === "GET") {
+    io.emit("online_user", { userCount: userCount + 1 }, () => {
+      userCount += 1;
 
-app.get("/", (req, res) => {
-  io.emit("online_user", { userCount: userCount + 1 }, () => {
-    userCount += 1;
-    res.status(200);
-    res.send();
+      setTimeout(() => {
+        io.emit("online_user", { userCount: userCount - 1 }, () => {
+          userCount -= 1;
+        });
+      }, getRandomNumber(0, getRandomNumber(0, 10)) * 1000);
 
-    setTimeout(() => {
-      io.emit("online_user", { userCount: userCount - 1 }, () => {
-        userCount -= 1;
-      });
-    }, getRandomNumber(0, 10) * 1000);
-  });
-});
+      res.stateCode = 200;
+      return res.end();
+    });
+  }
+}
 
 const onUserConnect = (socket, arg) => {
   socket.broadcast.emit("online_user", { userCount: userCount + 1 });
